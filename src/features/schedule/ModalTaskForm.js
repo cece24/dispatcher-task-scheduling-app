@@ -142,6 +142,34 @@ export class ModalTaskForm extends React.Component {
       address: "",
     };
 
+    if (this.props.type === "edit") {
+      const {
+        id,
+        driverId,
+        weekId,
+        dayId,
+        startHourId,
+        endHourId,
+        taskCoordinates,
+        type,
+        description,
+        address,
+      } = this.props.task;
+
+      this.state = {
+        id,
+        driverId,
+        weekId,
+        dayId,
+        startHourId,
+        endHourId,
+        taskCoordinates,
+        type,
+        description,
+        address,
+      };
+    }
+
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
@@ -188,13 +216,14 @@ export class ModalTaskForm extends React.Component {
   };
 
   render() {
+    const { type, show, close } = this.props;
     return (
-      <Modal show={this.props.show}>
-        <CloseModalButton onClick={() => this.props.close()}>
-          X
-        </CloseModalButton>
+      <Modal show>
+        <CloseModalButton onClick={() => close()}>X</CloseModalButton>
         <FormContainer>
-          <ModalTitle>Create Task</ModalTitle>
+          <ModalTitle>
+            {type === "create" ? "Create Task" : "Edit Task"}
+          </ModalTitle>
           <Form onSubmit={this.handleSubmit}>
             <FormField>
               <Label>
@@ -235,8 +264,10 @@ export class ModalTaskForm extends React.Component {
                     dayId={this.state.dayId}
                     onChange={this.handleChange}
                   >
-                    {DAYS_OF_THE_WEEK.map((day) => (
-                      <option value={day.dayId}>{day.label}</option>
+                    {DAYS_OF_THE_WEEK.map((day, index) => (
+                      <option key={`day-${index}`} value={day.dayId}>
+                        {day.label}
+                      </option>
                     ))}
                   </Select>
                 </Label>
@@ -252,8 +283,10 @@ export class ModalTaskForm extends React.Component {
                   startHourId={this.state.startHourId}
                   onChange={this.handleChange}
                 >
-                  {HOURS_OF_THE_DAY.map((hour) => (
-                    <option value={hour.hourId}>{hour.label}</option>
+                  {HOURS_OF_THE_DAY.map((hour, index) => (
+                    <option key={`start-hour-${index}`} value={hour.hourId}>
+                      {hour.label}
+                    </option>
                   ))}
                 </Select>
               </Label>
@@ -264,8 +297,10 @@ export class ModalTaskForm extends React.Component {
                   endHourId={this.state.endHourId}
                   onChange={this.handleChange}
                 >
-                  {HOURS_OF_THE_DAY.map((hour) => (
-                    <option value={hour.hourId}>{hour.label}</option>
+                  {HOURS_OF_THE_DAY.map((hour, index) => (
+                    <option key={`end-hour-${index}`} value={hour.hourId}>
+                      {hour.label}
+                    </option>
                   ))}
                 </Select>
               </Label>
@@ -309,7 +344,9 @@ export class ModalTaskForm extends React.Component {
                 />
               </Label>
             </FormField>
-            <SubmitButton type="submit">CREATE</SubmitButton>
+            <SubmitButton type="submit">
+              {type === "create" ? "CREATE" : "SAVE CHANGES"}
+            </SubmitButton>
           </Form>
         </FormContainer>
       </Modal>

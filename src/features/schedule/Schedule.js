@@ -102,7 +102,9 @@ export class Schedule extends React.Component {
 
     this.state = {
       week: 1,
-      showModal: false,
+      showCreateModal: false,
+      showEditModal: false,
+      taskClicked: {},
     };
   }
 
@@ -135,30 +137,63 @@ export class Schedule extends React.Component {
     return hasTask;
   };
 
-  getTaskDescription = (dayId, hourId) => {
-    const hasTask = this.hasTask(dayId, hourId);
-
-    if (hasTask) {
-      this.props.tasks.map((task) => {});
+  openModal = (modalType) => {
+    if (modalType === "create") {
+      this.setState({
+        showCreateModal: true,
+        showEditModal: false,
+      });
+    } else if (modalType === "edit") {
+      this.setState({
+        showEditModal: true,
+        showCreateModal: false,
+      });
     }
-  };
-
-  openModal = () => {
-    this.setState({
-      showModal: true,
-    });
   };
 
   closeModal = () => {
     this.setState({
-      showModal: false,
+      showCreateModal: false,
+      showEditModal: false,
     });
+  };
+
+  getTaskById = (id) => {
+    let retreivedTask;
+    this.props.tasks.map((task) => {
+      console.log(`GIVEN ID: ${id}`);
+      console.log(`CURRENT TASK ID: ${task.id}`);
+      if (task.id === parseInt(id)) {
+        console.log(`inside MATCH`);
+        console.log(`task is: ${JSON.stringify(task)}`);
+        retreivedTask = task;
+      }
+    });
+
+    return retreivedTask;
+  };
+
+  handleTaskClick = (e) => {
+    const targetTaskId = e.target.getAttribute("id");
+    let task = this.getTaskById(targetTaskId);
+    console.log(`retreived task: ${JSON.stringify(task)}`);
+    this.openModal("edit");
+    this.setState({
+      taskClicked: task,
+    });
+
+    console.log(
+      `task clicked state is ${JSON.stringify(this.state.taskClicked)}`
+    );
+    e.preventDefault();
   };
 
   render() {
     return (
       <div>
-        <AddTaskButton onClick={this.openModal}>+</AddTaskButton>
+        <AddTaskButton onClick={() => this.openModal("create")}>
+          +
+        </AddTaskButton>
         <ScheduleContainer>
           <Header>
             <Button>Driver Selector</Button>
@@ -168,9 +203,18 @@ export class Schedule extends React.Component {
             <Button>Download Schedule</Button>
           </Header>
           <Body>
-            {this.state.showModal && (
+            {this.state.showCreateModal && (
               <ModalTaskForm
-                show={this.state.showModal}
+                type="create"
+                show={this.state.showCreateModal}
+                close={this.closeModal}
+              ></ModalTaskForm>
+            )}
+            {this.state.showEditModal && (
+              <ModalTaskForm
+                type="edit"
+                task={this.state.taskClicked}
+                show={this.state.showEditModal}
                 close={this.closeModal}
               ></ModalTaskForm>
             )}
@@ -189,13 +233,18 @@ export class Schedule extends React.Component {
                 <Hours>
                   {HOURS_OF_THE_DAY.map((hour, index) => (
                     <Hour key={`hour-${index}`}>
-                      <Task
-                        show={this.hasTask(day.dayId, hour.hourId)}
-                        description={this.getTaskDescription(
-                          day.dayId,
-                          hour.hourId
-                        )}
-                      ></Task>
+                      {this.props.tasks.map((task, index) => (
+                        <div key={`task-${index}`}>
+                          {console.log(`TASK TO BE CLICKED ID: ${task.id}`)}
+                          <Task
+                            id={`${task.id - 1}`}
+                            show={this.hasTask(day.dayId, hour.hourId)}
+                            onClick={this.handleTaskClick}
+                          >
+                            {task.description}
+                          </Task>
+                        </div>
+                      ))}
                     </Hour>
                   ))}
                 </Hours>
