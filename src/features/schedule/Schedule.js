@@ -74,9 +74,9 @@ const Task = styled.div`
 `;
 
 const AddTaskButton = styled.button`
-  position: absolute;
-  right: 24px;
-  bottom: 24px;
+  position: sticky;
+  left: 81vw;
+  bottom: 60px;
   height: 56px;
   width: 56px;
   border-radius: 50%;
@@ -87,6 +87,13 @@ const AddTaskButton = styled.button`
   background-color: white;
   border: 1px solid lightgrey;
   box-shadow: 2px 2px 10px #888888;
+
+  transition: all 0.2s ease-out;
+
+  &:hover {
+    box-shadow: 0 2px 4px 2px rgba(0, 0, 0, 0.1);
+    bottom: 56px;
+  }
 `;
 
 export class Schedule extends React.Component {
@@ -119,7 +126,7 @@ export class Schedule extends React.Component {
       if (task.taskCoordinates.length !== 0) {
         task.taskCoordinates.map((coord) => {
           if (coord === dateCoordinate) {
-            hasTask = "show-task";
+            hasTask = true;
           }
         });
       }
@@ -128,7 +135,15 @@ export class Schedule extends React.Component {
     return hasTask;
   };
 
-  handleClick = () => {
+  getTaskDescription = (dayId, hourId) => {
+    const hasTask = this.hasTask(dayId, hourId);
+
+    if (hasTask) {
+      this.props.tasks.map((task) => {});
+    }
+  };
+
+  openModal = () => {
     this.setState({
       showModal: true,
     });
@@ -142,47 +157,53 @@ export class Schedule extends React.Component {
 
   render() {
     return (
-      <ScheduleContainer>
-        <Header>
-          <Button>Driver Selector</Button>
-          <Button onClick={() => this.setWeek("previous")}>{"<"}</Button>
-          <div>WEEK {this.state.week}</div>
-          <Button onClick={() => this.setWeek("next")}>{">"}</Button>
-          <Button>Download Schedule</Button>
-        </Header>
-        <Body>
-          <AddTaskButton onClick={this.handleClick}>+</AddTaskButton>
-          {this.state.showModal && (
-            <ModalTaskForm
-              show={this.state.showModal}
-              close={this.closeModal}
-            ></ModalTaskForm>
-          )}
-          <DayContainer>
-            <Hours style={{ marginTop: "40px" }}>
-              {HOURS_OF_THE_DAY.map((hour, index) => (
-                <Hour key={`hour-ref-${index}`}>{hour.label}</Hour>
-              ))}
-            </Hours>
-          </DayContainer>
-          {DAYS_OF_THE_WEEK.map((day, index) => (
-            <DayContainer key={`day-${index}`}>
-              <Day>
-                <strong>{day.label}</strong>
-              </Day>
-              <Hours>
+      <div>
+        <AddTaskButton onClick={this.openModal}>+</AddTaskButton>
+        <ScheduleContainer>
+          <Header>
+            <Button>Driver Selector</Button>
+            <Button onClick={() => this.setWeek("previous")}>{"<"}</Button>
+            <div>WEEK {this.state.week}</div>
+            <Button onClick={() => this.setWeek("next")}>{">"}</Button>
+            <Button>Download Schedule</Button>
+          </Header>
+          <Body>
+            {this.state.showModal && (
+              <ModalTaskForm
+                show={this.state.showModal}
+                close={this.closeModal}
+              ></ModalTaskForm>
+            )}
+            <DayContainer>
+              <Hours style={{ marginTop: "40px" }}>
                 {HOURS_OF_THE_DAY.map((hour, index) => (
-                  <Hour key={`hour-${index}`}>
-                    <Task show={this.hasTask(day.dayId, hour.hourId)}>
-                      TASK!!
-                    </Task>
-                  </Hour>
+                  <Hour key={`hour-ref-${index}`}>{hour.label}</Hour>
                 ))}
               </Hours>
             </DayContainer>
-          ))}
-        </Body>
-      </ScheduleContainer>
+            {DAYS_OF_THE_WEEK.map((day, index) => (
+              <DayContainer key={`day-${index}`}>
+                <Day>
+                  <strong>{day.label}</strong>
+                </Day>
+                <Hours>
+                  {HOURS_OF_THE_DAY.map((hour, index) => (
+                    <Hour key={`hour-${index}`}>
+                      <Task
+                        show={this.hasTask(day.dayId, hour.hourId)}
+                        description={this.getTaskDescription(
+                          day.dayId,
+                          hour.hourId
+                        )}
+                      ></Task>
+                    </Hour>
+                  ))}
+                </Hours>
+              </DayContainer>
+            ))}
+          </Body>
+        </ScheduleContainer>
+      </div>
     );
   }
 }

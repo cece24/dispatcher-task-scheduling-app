@@ -14,7 +14,7 @@ const Modal = styled.div`
     position: fixed;
     top: 130px;
     width: 700px;
-    height: 500px;
+    height: 550px;
     background-color: white;
     border: 1px solid lightgrey;
     box-shadow: 2px 2px 10px #888888;
@@ -38,16 +38,22 @@ const CloseModalButton = styled.button`
   border: 1px solid lightgrey;
 `;
 
+const ModalTitle = styled.h2`
+  width: 150px;
+  border-right: 1px solid lightgrey;
+  padding-right: 24px;
+`;
+
 const FormContainer = styled.div`
   // border: 1px solid lightgrey;
   // color: #fff;
-  // padding: 3rem;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
 `;
 
 const Form = styled.form`
   max-width: 640px;
-  // margin-top: 3rem;
-  // overflow: auto;
   display: flex;
   flex-direction: column;
 `;
@@ -76,8 +82,7 @@ const sharedFieldStyles = css`
 `;
 
 const FormField = styled.div`
-  border: 1px solid lightgrey;
-  margin: 5px;
+  margin: 10px;
   padding: 5px;
   text-align: left;
 `;
@@ -101,7 +106,7 @@ const Select = styled.select`
 `;
 
 const SubmitButton = styled.button`
-  margin-top: 3rem;
+  margin-top: 10px;
   width: 12rem;
   padding: 1rem;
   border-radius: 3rem;
@@ -172,7 +177,6 @@ export class ModalTaskForm extends React.Component {
 
     taskPayload.taskCoordinates = [];
     let numOfCoords = endHourId - startHourId;
-    console.log(`NUM OF COORDS: ${numOfCoords}`);
     for (let coord = 0; coord < numOfCoords; coord++) {
       let hourCoord = parseInt(startHourId) + coord;
       taskPayload.taskCoordinates.push(`${weekId}-${dayId}-${hourCoord}`);
@@ -190,7 +194,7 @@ export class ModalTaskForm extends React.Component {
           X
         </CloseModalButton>
         <FormContainer>
-          <h2>Create Task</h2>
+          <ModalTitle>Create Task</ModalTitle>
           <Form onSubmit={this.handleSubmit}>
             <FormField>
               <Label>
@@ -286,8 +290,8 @@ export class ModalTaskForm extends React.Component {
                 <TextArea
                   name="description"
                   value={this.state.description}
-                  rows="1"
-                  cols="60"
+                  rows="2"
+                  cols="40"
                   required="required"
                   onChange={this.handleChange}
                 />
