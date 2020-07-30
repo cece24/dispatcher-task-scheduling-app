@@ -11,8 +11,9 @@ import ModalTaskForm from "./ModalTaskForm";
 const ScheduleContainer = styled.div`
   position: relative;
   display: inline-block;
-  width: 70vw;
-  height: 90vh;
+  width: 80vw;
+  height: 85vh;
+  padding: 1rem;
   overflow: auto;
   border: 1px solid lightgrey;
   box-shadow: 2px 2px 2px #eee;
@@ -22,6 +23,7 @@ const Header = styled.div`
   font-size: 24px;
   font-weight: bold;
   padding: 20px 10px 20px 10px;
+  margin-bottom: 1rem;
   display: flex;
   justify-content: space-between;
   background-color: #f5f6fa;
@@ -45,7 +47,7 @@ const DayContainer = styled.div`
 
 const Day = styled.div`
   width: 100%;
-  height: 40px;
+  height: 50px;
 `;
 
 const Hours = styled.div`
@@ -54,10 +56,11 @@ const Hours = styled.div`
 
 const Hour = styled.div`
   position: relative;
-  border-top: 0.1px solid grey;
+  border-top: 0.1px solid lightgrey;
+  border-right: 0.1px solid lightgrey;
   display: block;
   width: 100%;
-  height: 40px;
+  height: 50px;
 `;
 
 const Task = styled.div`
@@ -72,8 +75,8 @@ const Task = styled.div`
 
 const AddTaskButton = styled.button`
   position: sticky;
-  left: 81vw;
-  bottom: 60px;
+  left: 87vw;
+  bottom: 90px;
   height: 56px;
   width: 56px;
   border-radius: 50%;
@@ -89,7 +92,7 @@ const AddTaskButton = styled.button`
 
   &:hover {
     box-shadow: 0 2px 4px 2px rgba(0, 0, 0, 0.1);
-    bottom: 56px;
+    bottom: 85px;
   }
 `;
 
@@ -169,7 +172,6 @@ export class Schedule extends React.Component {
 
   handleTaskClick = (taskId) => {
     const retrievedTask = this.getTaskById(taskId);
-    // console.log(`retrieved task: ${JSON.stringify(retrievedTask)}`);
     this.openModal("edit");
     this.setState({
       activeTask: retrievedTask,
@@ -194,20 +196,20 @@ export class Schedule extends React.Component {
             {this.state.showCreateModal && (
               <ModalTaskForm
                 type="create"
-                show={this.state.showCreateModal}
+                week={this.state.week}
                 closeModal={this.closeModal}
               ></ModalTaskForm>
             )}
             {this.state.showEditModal && (
               <ModalTaskForm
                 type="edit"
+                week={this.state.week}
                 task={this.state.activeTask}
-                show={this.state.showEditModal}
                 closeModal={this.closeModal}
               ></ModalTaskForm>
             )}
             <DayContainer>
-              <Hours style={{ marginTop: "40px" }}>
+              <Hours style={{ marginTop: "50px" }}>
                 {HOURS_OF_THE_DAY.map((hour, index) => (
                   <Hour key={`hour-ref-${index}`}>{hour.label}</Hour>
                 ))}

@@ -8,21 +8,15 @@ import {
 import { createTask, deleteTask } from "../task/actions";
 
 const Modal = styled.div`
-  display: none;
-
-  ${({ show }) =>
-    show &&
-    `
-    display: inline-block;
-    position: fixed;
-    top: 130px;
-    width: 700px;
-    height: 550px;
-    background-color: white;
-    border: 1px solid lightgrey;
-    box-shadow: 2px 2px 10px #888888;
-    z-index: 1;
-    `}
+  display: inline-block;
+  position: fixed;
+  top: 130px;
+  width: 90vw;
+  height: 550px;
+  background-color: white;
+  border: 1px solid lightgrey;
+  box-shadow: 2px 2px 10px #888888;
+  z-index: 1;
 `;
 
 const CloseModalButton = styled.button`
@@ -48,8 +42,6 @@ const ModalTitle = styled.h2`
 `;
 
 const FormContainer = styled.div`
-  // border: 1px solid lightgrey;
-  // color: #fff;
   padding: 20px;
   display: flex;
   justify-content: center;
@@ -66,22 +58,6 @@ const sharedFieldStyles = css`
   margin-left: 10px;
   margin-right: 10px;
   padding: 5px 2px;
-  // // color: #fff;
-
-  // &::placeholder {
-  //   // color: #fff;
-  // }
-
-  // font-family: "Futura", "Times New Roman", sans-serif;
-  // border: none;
-  // padding: 1rem 0;
-  // margin-top: 1.4rem;
-  // display: block;
-  // width: 100%;
-  // border-bottom: 1px solid #fff;
-  // font-size: 1rem;
-  // font-weight: bold;
-  // background: transparent;
 `;
 
 const FormField = styled.div`
@@ -96,25 +72,26 @@ const Label = styled.label`
 
 const Input = styled.input`
   ${sharedFieldStyles};
-`;
-
-const TextArea = styled.textarea`
-  ${sharedFieldStyles};
+  width: 300px;
 `;
 
 const Select = styled.select`
   ${sharedFieldStyles};
-  display: inline-block;
-  width: 150px;
+  width: 100px;
 `;
 
-const SubmitButton = styled.button`
+const ButtonContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  padding: 0 1rem;
+`;
+
+const SharedButtonStyles = css`
   margin-top: 10px;
   width: 12rem;
   padding: 1rem;
   border-radius: 3rem;
   border: none;
-  background-color: #1a73e8;
   color: white;
   font-weight: bold;
   cursor: pointer;
@@ -129,34 +106,60 @@ const SubmitButton = styled.button`
   }
 `;
 
-const DeleteButton = styled.button`
-  width: 10rem;
-  border-radius: 3rem;
-  padding: 1rem;
-  cursor: pointer;
-  color: white;
+const SubmitButton = styled.button`
+  ${SharedButtonStyles}
   background-color: #1a73e8;
-  font-weight: bold;
+`;
+
+const DeleteButton = styled.button`
+  ${SharedButtonStyles}
+  background-color: red;
 `;
 
 export class ModalTaskForm extends React.Component {
   constructor(props) {
     super(props);
 
-    const task = props.task;
+    if (this.props.type === "edit") {
+      const {
+        id,
+        driverId,
+        weekId,
+        dayId,
+        startHourId,
+        endHourId,
+        taskCoordinates,
+        type,
+        description,
+        address,
+      } = this.props.task;
 
-    this.state = {
-      id: task.id || 0,
-      driverId: task.driverId || "",
-      weekId: task.weekId || 1,
-      dayId: task.dayId || 0,
-      startHourId: task.startHourId || 0,
-      endHourId: task.endHourId || 0,
-      taskCoordinates: task.taskCoordinates || [],
-      type: task.type || "pickup",
-      description: task.description || "",
-      address: task.address || "",
-    };
+      this.state = {
+        id,
+        driverId,
+        weekId,
+        dayId,
+        startHourId,
+        endHourId,
+        taskCoordinates,
+        type,
+        description,
+        address,
+      };
+    } else {
+      this.state = {
+        id: 0,
+        driverId: 1,
+        weekId: this.props.week,
+        dayId: 0,
+        startHourId: 0,
+        endHourId: 0,
+        taskCoordinates: [],
+        type: "pickup",
+        description: "",
+        address: "",
+      };
+    }
 
     console.log(`INITIAL STATE: ${JSON.stringify(this.state)}`);
   }
@@ -211,15 +214,14 @@ export class ModalTaskForm extends React.Component {
   };
 
   render() {
-    const { type, show, closeModal } = this.props;
+    const { type, closeModal } = this.props;
     return (
-      <Modal show>
+      <Modal>
         <CloseModalButton onClick={() => closeModal()}>X</CloseModalButton>
         <FormContainer>
           <ModalTitle>
             {type === "create" ? "Create Task" : "Edit Task"}
           </ModalTitle>
-          <DeleteButton onClick={this.deleteTask}>Delete</DeleteButton>
           <Form onSubmit={this.handleSubmit}>
             <FormField>
               <Label>
@@ -318,11 +320,10 @@ export class ModalTaskForm extends React.Component {
             <FormField>
               <Label>
                 Description:
-                <TextArea
+                <Input
                   name="description"
                   value={this.state.description}
-                  rows="2"
-                  cols="40"
+                  type="text"
                   required="required"
                   onChange={this.handleChange}
                 />
@@ -340,9 +341,14 @@ export class ModalTaskForm extends React.Component {
                 />
               </Label>
             </FormField>
-            <SubmitButton type="submit">
-              {type === "create" ? "CREATE" : "SAVE CHANGES"}
-            </SubmitButton>
+            <ButtonContainer>
+              <SubmitButton type="submit">
+                {type === "create" ? "CREATE" : "SAVE CHANGES"}
+              </SubmitButton>
+              {type === "edit" && (
+                <DeleteButton onClick={this.deleteTask}>DELETE</DeleteButton>
+              )}
+            </ButtonContainer>
           </Form>
         </FormContainer>
       </Modal>
