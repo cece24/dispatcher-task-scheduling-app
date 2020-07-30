@@ -1,4 +1,5 @@
 import React from "react";
+import { connect } from "react-redux";
 import styled from "styled-components";
 
 import { DAYS_OF_THE_WEEK, HOURS_OF_THE_DAY } from "../../app/constants";
@@ -49,10 +50,27 @@ const Hours = styled.div`
 `;
 
 const Hour = styled.div`
-  border-bottom: 0.1px solid grey;
-  display: inline-block;
+  position: relative;
+  border-top: 0.1px solid grey;
+  display: block;
   width: 100%;
   height: 40px;
+`;
+
+const Task = styled.div`
+  display: none;
+
+  ${({ show }) =>
+    show &&
+    `
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #1a73e8;
+  `}
 `;
 
 const AddTaskButton = styled.button`
@@ -89,6 +107,27 @@ export class Schedule extends React.Component {
     }
   };
 
+  getDateCoordinates = (dayId, hourId) => {
+    return `${this.state.week}-${dayId}-${hourId}`;
+  };
+
+  hasTask = (dayId, hourId) => {
+    let hasTask;
+    const dateCoordinate = this.getDateCoordinates(dayId, hourId);
+
+    this.props.tasks.map((task) => {
+      if (task.taskCoordinates.length !== 0) {
+        task.taskCoordinates.map((coord) => {
+          if (coord === dateCoordinate) {
+            hasTask = "show-task";
+          }
+        });
+      }
+    });
+
+    return hasTask;
+  };
+
   handleClick = () => {
     this.setState({
       showModal: true,
@@ -121,34 +160,23 @@ export class Schedule extends React.Component {
           )}
           <DayContainer>
             <Hours style={{ marginTop: "40px" }}>
-              {HOURS_OF_THE_DAY.map((h) => (
-                <Hour key={h}>{h.label}</Hour>
+              {HOURS_OF_THE_DAY.map((hour, index) => (
+                <Hour key={`hour-ref-${index}`}>{hour.label}</Hour>
               ))}
             </Hours>
           </DayContainer>
-          {DAYS_OF_THE_WEEK.map((day) => (
-            <DayContainer key={day.dayId}>
+          {DAYS_OF_THE_WEEK.map((day, index) => (
+            <DayContainer key={`day-${index}`}>
               <Day>
                 <strong>{day.label}</strong>
               </Day>
               <Hours>
                 {HOURS_OF_THE_DAY.map((hour, index) => (
-                  <div>
-                    <Hour key={hour.hourId}>
-                      {hour.label}
-                      <Task
-                        active={() => this.hasTask(day.dayId, hour.hourId)}
-                      ></Task>
-                    </Hour>
-                    {/* //   <Hour
-                    //     key={`hour-${index}`}
-                    //     weekId={this.state.week}
-                    //     dayId={day.dayId}
-                    //     hourId={hour.hourId}
-                    //     hourLabel={hour.label}
-                    //     tasks={this.props.tasks}
-                    //   ></Hour> */}
-                  </div>
+                  <Hour key={`hour-${index}`}>
+                    <Task show={this.hasTask(day.dayId, hour.hourId)}>
+                      TASK!!
+                    </Task>
+                  </Hour>
                 ))}
               </Hours>
             </DayContainer>
@@ -158,3 +186,7 @@ export class Schedule extends React.Component {
     );
   }
 }
+
+const mapStateToProps = (state) => ({ tasks: state.tasks });
+
+export default connect(mapStateToProps)(Schedule);

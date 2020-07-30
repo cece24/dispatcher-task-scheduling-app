@@ -55,6 +55,7 @@ const Form = styled.form`
 const sharedFieldStyles = css`
   display: inline-block;
   margin-left: 10px;
+  margin-right: 10px;
   padding: 5px 2px;
   // // color: #fff;
 
@@ -126,11 +127,9 @@ export class ModalTaskForm extends React.Component {
 
     this.state = {
       driverId: 1,
-      startWeekId: 1,
-      startDayId: 0,
+      weekId: 1,
+      dayId: 0,
       startHourId: 0,
-      endWeekId: 1,
-      endDayId: 0,
       endHourId: 0,
       taskCoordinates: [],
       type: "pickup",
@@ -151,11 +150,9 @@ export class ModalTaskForm extends React.Component {
   handleSubmit = (e) => {
     const {
       driverId,
-      startWeekId,
-      startDayId,
+      weekId,
+      dayId,
       startHourId,
-      endWeekId,
-      endDayId,
       endHourId,
       type,
       description,
@@ -164,18 +161,23 @@ export class ModalTaskForm extends React.Component {
 
     const taskPayload = {
       driverId,
-      startWeekId,
-      startDayId,
+      weekId,
+      dayId,
       startHourId,
-      endWeekId,
-      endDayId,
       endHourId,
       type,
       description,
       address,
     };
 
-    // console.log(`TASK PAYLOAD startHourId IS: ${JSON.stringify(taskPayload)}`);
+    taskPayload.taskCoordinates = [];
+    let numOfCoords = endHourId - startHourId;
+    console.log(`NUM OF COORDS: ${numOfCoords}`);
+    for (let coord = 0; coord < numOfCoords; coord++) {
+      let hourCoord = parseInt(startHourId) + coord;
+      taskPayload.taskCoordinates.push(`${weekId}-${dayId}-${hourCoord}`);
+    }
+
     this.props.createTask(taskPayload);
     alert("Task has been created!");
     e.preventDefault();
@@ -206,90 +208,62 @@ export class ModalTaskForm extends React.Component {
             </FormField>
             <FormField>
               <Label>
-                Start Time:
+                Date:
                 <hr></hr>
                 <Label>
                   Week:
                   <Input
-                    name="startWeekId"
+                    name="weekId"
                     type="number"
                     min="1"
                     max="52"
                     placeholder="1-52"
                     required="required"
                     style={{ width: "100px" }}
-                    value={this.state.startWeekId}
+                    value={this.state.weekId}
                     onChange={this.handleChange}
                   />
                 </Label>
                 <Label>
                   Day:
                   <Select
-                    name="startDayId"
-                    startDayId={this.state.startDayId}
+                    name="dayId"
+                    dayId={this.state.dayId}
                     onChange={this.handleChange}
                   >
                     {DAYS_OF_THE_WEEK.map((day) => (
                       <option value={day.dayId}>{day.label}</option>
-                    ))}
-                  </Select>
-                </Label>
-                <Label>
-                  Hour:
-                  <Select
-                    name="startHourId"
-                    startHourId={this.state.startHourId}
-                    onChange={this.handleChange}
-                  >
-                    {HOURS_OF_THE_DAY.map((hour) => (
-                      <option value={hour.Id}>{hour.label}</option>
                     ))}
                   </Select>
                 </Label>
               </Label>
             </FormField>
             <FormField>
+              Time:
+              <hr></hr>
               <Label>
-                End Time:
-                <hr></hr>
-                <Label>
-                  Week:
-                  <Input
-                    name="endWeekId"
-                    type="number"
-                    min="1"
-                    max="52"
-                    placeholder="1-52"
-                    required="required"
-                    style={{ width: "100px" }}
-                    value={this.state.endWeekId}
-                    onChange={this.handleChange}
-                  />
-                </Label>
-                <Label>
-                  Day:
-                  <Select
-                    name="endDayId"
-                    endDayId={this.state.endDayId}
-                    onChange={this.handleChange}
-                  >
-                    {DAYS_OF_THE_WEEK.map((day) => (
-                      <option value={day.dayId}>{day.label}</option>
-                    ))}
-                  </Select>
-                </Label>
-                <Label>
-                  Hour:
-                  <Select
-                    name="endHourId"
-                    endHourId={this.state.endHourId}
-                    onChange={this.handleChange}
-                  >
-                    {HOURS_OF_THE_DAY.map((hour) => (
-                      <option value={hour.Id}>{hour.label}</option>
-                    ))}
-                  </Select>
-                </Label>
+                From:
+                <Select
+                  name="startHourId"
+                  startHourId={this.state.startHourId}
+                  onChange={this.handleChange}
+                >
+                  {HOURS_OF_THE_DAY.map((hour) => (
+                    <option value={hour.hourId}>{hour.label}</option>
+                  ))}
+                </Select>
+              </Label>
+              <Label>
+                To:
+                <Select
+                  name="endHourId"
+                  endHourId={this.state.endHourId}
+                  onChange={this.handleChange}
+                >
+                  {HOURS_OF_THE_DAY.map((hour) => (
+                    <option value={hour.hourId}>{hour.label}</option>
+                  ))}
+                </Select>
               </Label>
             </FormField>
             <FormField>
