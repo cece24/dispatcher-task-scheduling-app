@@ -2,8 +2,10 @@ import React from "react";
 import styled from "styled-components";
 
 import { DAYS_OF_THE_WEEK, HOURS_OF_THE_DAY } from "../../app/constants";
+import ModalTaskForm from "./ModalTaskForm";
 
 const ScheduleContainer = styled.div`
+  position: relative;
   display: inline-block;
   width: 70vw;
   height: 90vh;
@@ -53,12 +55,29 @@ const Hour = styled.div`
   height: 40px;
 `;
 
+const AddTaskButton = styled.button`
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  height: 56px;
+  width: 56px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 1;
+  font-size: 36px;
+  font-weight: bold;
+  background-color: white;
+  border: 1px solid lightgrey;
+  box-shadow: 2px 2px 10px #888888;
+`;
+
 export class Schedule extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
       week: 1,
+      showModal: false,
     };
   }
 
@@ -68,6 +87,18 @@ export class Schedule extends React.Component {
     } else if (direction === "next" && this.state.week !== 52) {
       this.setState({ week: this.state.week + 1 });
     }
+  };
+
+  handleClick = () => {
+    this.setState({
+      showModal: true,
+    });
+  };
+
+  closeModal = () => {
+    this.setState({
+      showModal: false,
+    });
   };
 
   render() {
@@ -81,6 +112,13 @@ export class Schedule extends React.Component {
           <Button>Download Schedule</Button>
         </Header>
         <Body>
+          <AddTaskButton onClick={this.handleClick}>+</AddTaskButton>
+          {this.state.showModal && (
+            <ModalTaskForm
+              show={this.state.showModal}
+              close={this.closeModal}
+            ></ModalTaskForm>
+          )}
           <DayContainer>
             <Hours style={{ marginTop: "40px" }}>
               {HOURS_OF_THE_DAY.map((h) => (
