@@ -1,8 +1,11 @@
 import React from "react";
 import { connect } from "react-redux";
 import styled, { css } from "styled-components";
-import { DAYS_OF_THE_WEEK, HOURS_OF_THE_DAY } from "../../app/constants";
-import { createTask } from "../task/actions";
+import {
+  DAYS_OF_THE_WEEK,
+  HOURS_OF_THE_DAY,
+} from "../../app/constants/constants";
+import { createTask, deleteTask } from "../task/actions";
 
 const Modal = styled.div`
   display: none;
@@ -126,52 +129,36 @@ const SubmitButton = styled.button`
   }
 `;
 
+const DeleteButton = styled.button`
+  width: 10rem;
+  border-radius: 3rem;
+  padding: 1rem;
+  cursor: pointer;
+  color: white;
+  background-color: #1a73e8;
+  font-weight: bold;
+`;
+
 export class ModalTaskForm extends React.Component {
   constructor(props) {
     super(props);
 
+    const task = props.task;
+
     this.state = {
-      driverId: 1,
-      weekId: 1,
-      dayId: 0,
-      startHourId: 0,
-      endHourId: 0,
-      taskCoordinates: [],
-      type: "pickup",
-      description: "",
-      address: "",
+      id: task.id || 0,
+      driverId: task.driverId || "",
+      weekId: task.weekId || 1,
+      dayId: task.dayId || 0,
+      startHourId: task.startHourId || 0,
+      endHourId: task.endHourId || 0,
+      taskCoordinates: task.taskCoordinates || [],
+      type: task.type || "pickup",
+      description: task.description || "",
+      address: task.address || "",
     };
 
-    if (this.props.type === "edit") {
-      const {
-        id,
-        driverId,
-        weekId,
-        dayId,
-        startHourId,
-        endHourId,
-        taskCoordinates,
-        type,
-        description,
-        address,
-      } = this.props.task;
-
-      this.state = {
-        id,
-        driverId,
-        weekId,
-        dayId,
-        startHourId,
-        endHourId,
-        taskCoordinates,
-        type,
-        description,
-        address,
-      };
-    }
-
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
+    console.log(`INITIAL STATE: ${JSON.stringify(this.state)}`);
   }
 
   handleChange = (e) => {
@@ -211,19 +198,28 @@ export class ModalTaskForm extends React.Component {
     }
 
     this.props.createTask(taskPayload);
+    this.props.closeModal();
     alert("Task has been created!");
     e.preventDefault();
   };
 
+  deleteTask = (e) => {
+    this.props.deleteTask({ taskId: this.state.id });
+    this.props.closeModal();
+    alert("Task has been deleted!");
+    e.preventDefault();
+  };
+
   render() {
-    const { type, show, close } = this.props;
+    const { type, show, closeModal } = this.props;
     return (
       <Modal show>
-        <CloseModalButton onClick={() => close()}>X</CloseModalButton>
+        <CloseModalButton onClick={() => closeModal()}>X</CloseModalButton>
         <FormContainer>
           <ModalTitle>
             {type === "create" ? "Create Task" : "Edit Task"}
           </ModalTitle>
+          <DeleteButton onClick={this.deleteTask}>Delete</DeleteButton>
           <Form onSubmit={this.handleSubmit}>
             <FormField>
               <Label>
@@ -355,6 +351,6 @@ export class ModalTaskForm extends React.Component {
 }
 
 const mapStateToProps = (state) => ({ tasks: state.tasks });
-const mapDispatchToProps = { createTask };
+const mapDispatchToProps = { createTask, deleteTask };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ModalTaskForm);

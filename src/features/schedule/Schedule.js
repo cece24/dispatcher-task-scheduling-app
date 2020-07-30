@@ -2,7 +2,10 @@ import React from "react";
 import { connect } from "react-redux";
 import styled from "styled-components";
 
-import { DAYS_OF_THE_WEEK, HOURS_OF_THE_DAY } from "../../app/constants";
+import {
+  DAYS_OF_THE_WEEK,
+  HOURS_OF_THE_DAY,
+} from "../../app/constants/constants";
 import ModalTaskForm from "./ModalTaskForm";
 
 const ScheduleContainer = styled.div`
@@ -58,11 +61,6 @@ const Hour = styled.div`
 `;
 
 const Task = styled.div`
-  display: none;
-
-  ${({ show }) =>
-    show &&
-    `
   display: inline-block;
   width: 100%;
   height: 100%;
@@ -70,7 +68,6 @@ const Task = styled.div`
   top: 0;
   right: 0;
   background-color: #1a73e8;
-  `}
 `;
 
 const AddTaskButton = styled.button`
@@ -104,7 +101,8 @@ export class Schedule extends React.Component {
       week: 1,
       showCreateModal: false,
       showEditModal: false,
-      taskClicked: {},
+      activeTask: {},
+      tasksCoordinates: [],
     };
   }
 
@@ -159,33 +157,23 @@ export class Schedule extends React.Component {
   };
 
   getTaskById = (id) => {
-    let retreivedTask;
+    let retrievedTask;
     this.props.tasks.map((task) => {
-      console.log(`GIVEN ID: ${id}`);
-      console.log(`CURRENT TASK ID: ${task.id}`);
-      if (task.id === parseInt(id)) {
-        console.log(`inside MATCH`);
-        console.log(`task is: ${JSON.stringify(task)}`);
-        retreivedTask = task;
+      if (task.id === id) {
+        retrievedTask = task;
       }
     });
 
-    return retreivedTask;
+    return retrievedTask;
   };
 
-  handleTaskClick = (e) => {
-    const targetTaskId = e.target.getAttribute("id");
-    let task = this.getTaskById(targetTaskId);
-    console.log(`retreived task: ${JSON.stringify(task)}`);
+  handleTaskClick = (taskId) => {
+    const retrievedTask = this.getTaskById(taskId);
+    // console.log(`retrieved task: ${JSON.stringify(retrievedTask)}`);
     this.openModal("edit");
     this.setState({
-      taskClicked: task,
+      activeTask: retrievedTask,
     });
-
-    console.log(
-      `task clicked state is ${JSON.stringify(this.state.taskClicked)}`
-    );
-    e.preventDefault();
   };
 
   render() {
@@ -207,15 +195,15 @@ export class Schedule extends React.Component {
               <ModalTaskForm
                 type="create"
                 show={this.state.showCreateModal}
-                close={this.closeModal}
+                closeModal={this.closeModal}
               ></ModalTaskForm>
             )}
             {this.state.showEditModal && (
               <ModalTaskForm
                 type="edit"
-                task={this.state.taskClicked}
+                task={this.state.activeTask}
                 show={this.state.showEditModal}
-                close={this.closeModal}
+                closeModal={this.closeModal}
               ></ModalTaskForm>
             )}
             <DayContainer>
@@ -233,18 +221,23 @@ export class Schedule extends React.Component {
                 <Hours>
                   {HOURS_OF_THE_DAY.map((hour, index) => (
                     <Hour key={`hour-${index}`}>
-                      {this.props.tasks.map((task, index) => (
-                        <div key={`task-${index}`}>
-                          {console.log(`TASK TO BE CLICKED ID: ${task.id}`)}
-                          <Task
-                            id={`${task.id - 1}`}
-                            show={this.hasTask(day.dayId, hour.hourId)}
-                            onClick={this.handleTaskClick}
-                          >
-                            {task.description}
-                          </Task>
-                        </div>
-                      ))}
+                      {this.props.tasks.map(
+                        (task, taskIndex) =>
+                          task.taskCoordinates.includes(
+                            this.getDateCoordinates(day.dayId, hour.hourId)
+                          ) && (
+                            <Task
+                              key={`task-${taskIndex}`}
+                              className={this.getDateCoordinates(
+                                day.dayId,
+                                hour.hourId
+                              )}
+                              onClick={() => this.handleTaskClick(task.id)}
+                            >
+                              {task.description}
+                            </Task>
+                          )
+                      )}
                     </Hour>
                   ))}
                 </Hours>

@@ -1,7 +1,9 @@
+import { CREATE_TASK, DELETE_TASK } from "../../app/constants/action-types";
+
 const initialState = [
   {
     id: 0,
-    driverId: 0,
+    driverId: 1,
     weekId: 1,
     dayId: 0,
     startHourId: 12,
@@ -13,7 +15,7 @@ const initialState = [
   },
   {
     id: 1,
-    driverId: 0,
+    driverId: 2,
     weekId: 3,
     dayId: 4,
     startHourId: 12,
@@ -27,8 +29,10 @@ const initialState = [
 
 export default function tasks(state = initialState, action) {
   switch (action.type) {
-    case "CREATE_TASK":
+    case CREATE_TASK:
       return state.slice().concat(action.payload);
+    case DELETE_TASK:
+      return state.filter((task) => task.id !== action.payload.taskId);
     default:
       return state;
   }
