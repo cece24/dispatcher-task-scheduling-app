@@ -13,7 +13,7 @@ export function generateCsvReportData(reportInterval, driverId, tasks) {
       let other = 0;
       for (var interval = 0; interval < 3; interval++) {
         driverTasks.map((task) => {
-          if (task.dayId === dayCounter) {
+          if (task.dayId === day) {
             if (task.type === "pickup") {
               pickUps++;
             }

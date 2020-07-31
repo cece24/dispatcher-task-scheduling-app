@@ -151,7 +151,7 @@ export class Schedule extends React.Component {
       showCreateModal: false,
       showEditModal: false,
       activeTask: {},
-      driverId: 2,
+      driverId: 1,
       driverTasks: [],
       reportInterval: 2,
       csvData: [],
@@ -172,12 +172,9 @@ export class Schedule extends React.Component {
   };
 
   handleDriverChange = (e) => {
-    this.setState(
-      {
-        [e.target.name]: e.target.value,
-      },
-      this.getDriverTasks
-    );
+    this.setState({
+      [e.target.name]: e.target.value,
+    });
   };
 
   handleReportIntervalChange = (e) => {
@@ -348,20 +345,19 @@ export class Schedule extends React.Component {
                 <Hours>
                   {HOURS_OF_THE_DAY.map((hour, index) => (
                     <Hour key={`hour-${index}`}>
-                      {this.state.driverTasks.length > 0 &&
-                        this.state.driverTasks.map(
-                          (task, taskIndex) =>
-                            task.taskCoordinates.includes(
-                              this.getDateCoordinates(day.dayId, hour.hourId)
-                            ) && (
-                              <Task
-                                key={`task-${taskIndex}`}
-                                onClick={() => this.handleTaskClick(task.id)}
-                              >
-                                {task.description}
-                              </Task>
-                            )
-                        )}
+                      {this.props.tasks.map(
+                        (task, taskIndex) =>
+                          task.taskCoordinates.includes(
+                            this.getDateCoordinates(day.dayId, hour.hourId)
+                          ) && (
+                            <Task
+                              key={`task-${taskIndex}`}
+                              onClick={() => this.handleTaskClick(task.id)}
+                            >
+                              {task.description}
+                            </Task>
+                          )
+                      )}
                     </Hour>
                   ))}
                 </Hours>
