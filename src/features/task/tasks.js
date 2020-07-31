@@ -2,6 +2,7 @@ import {
   CREATE_TASK,
   DELETE_TASK,
   UPDATE_TASK,
+  GET_TASKS_BY_DRIVER_ID,
 } from "../../app/constants/action-types";
 
 const initialState = [
@@ -41,6 +42,8 @@ export default function tasks(state = initialState, action) {
       return state
         .filter((task) => task.id !== action.payload.id)
         .concat(action.payload);
+    case GET_TASKS_BY_DRIVER_ID:
+      return state.filter((task) => task.driverId === action.payload.driverId);
     default:
       return state;
   }

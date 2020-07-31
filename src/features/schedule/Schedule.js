@@ -1,6 +1,9 @@
 import React from "react";
 import { connect } from "react-redux";
 import styled from "styled-components";
+import { CSVLink } from "react-csv";
+import { generateCsvReportData } from "./generateCsvReportData.js";
+import { getTasksByDriverId } from "../task/actions";
 
 import {
   DAYS_OF_THE_WEEK,
@@ -31,6 +34,47 @@ const Header = styled.div`
 
 const Button = styled.div`
   cursor: pointer;
+`;
+
+const ButtonContainer = styled.div`
+  margin-left: 1rem;
+`;
+
+const ButtonLabel = styled.label`
+  font-size: 16px;
+  font-weight: bold;
+`;
+
+const DriverSelect = styled.select`
+  margin-left: 10px;
+  width: 50px;
+  height: 30px;
+`;
+
+const ReportSelect = styled.select`
+  margin-left: 5px;
+  width: 75px;
+  height: 30px;
+`;
+
+const ReportButton = styled.button`
+  width: 9rem;
+  padding: 8px;
+  border-radius: 5px;
+  border: none;
+  color: #333c44;
+  background-color: #b3e8ff;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.5);
+  transition: all 0.2s ease-out;
+  position: relative;
+  top: 0;
+
+  &:hover {
+    box-shadow: 0 2px 4px 2px rgba(0, 0, 0, 0.1);
+    top: -2px;
+  }
 `;
 
 const Body = styled.div`
@@ -107,9 +151,53 @@ export class Schedule extends React.Component {
       showCreateModal: false,
       showEditModal: false,
       activeTask: {},
-      tasksCoordinates: [],
+      driverId: 2,
+      driverTasks: [],
+      reportInterval: 2,
+      csvData: [],
     };
   }
+
+  componentDidMount() {
+    this.getDriverTasks();
+  }
+
+  getDriverTasks = () => {
+    const tasks = this.props.tasks.filter(
+      (task) => task.driverId === this.state.driverId
+    );
+    this.setState({
+      driverTasks: tasks,
+    });
+  };
+
+  handleDriverChange = (e) => {
+    this.setState(
+      {
+        [e.target.name]: e.target.value,
+      },
+      this.getDriverTasks
+    );
+  };
+
+  handleReportIntervalChange = (e) => {
+    this.setState({
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  handleReportButtonClick = () => {
+    const { reportInterval, driverId } = this.state;
+    const data = generateCsvReportData(
+      reportInterval,
+      driverId,
+      this.props.tasks
+    );
+
+    this.setState({
+      csvData: data,
+    });
+  };
 
   setWeek = (direction) => {
     if (direction === "previous" && this.state.week !== 1) {
@@ -188,11 +276,46 @@ export class Schedule extends React.Component {
         </AddTaskButton>
         <ScheduleContainer>
           <Header>
-            <Button>Driver Selector</Button>
+            <ButtonContainer>
+              <ButtonLabel>
+                Driver Selector:
+                <DriverSelect
+                  name="driverId"
+                  value={this.state.driverId}
+                  onChange={this.handleDriverChange}
+                >
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                </DriverSelect>
+              </ButtonLabel>
+            </ButtonContainer>
             <Button onClick={() => this.setWeek("previous")}>{"<"}</Button>
             <div>WEEK {this.state.week}</div>
             <Button onClick={() => this.setWeek("next")}>{">"}</Button>
-            <Button>Download Schedule</Button>
+            <ButtonContainer>
+              <ButtonLabel>
+                <CSVLink
+                  data={this.state.csvData}
+                  filename={`driver-${this.state.driverId}-interval-${this.state.reportInterval}-report`}
+                >
+                  <ReportButton onClick={this.handleReportButtonClick}>
+                    Download Report
+                  </ReportButton>
+                </CSVLink>
+                <ReportSelect
+                  name="reportInterval"
+                  value={this.state.reportInterval}
+                  onChange={this.handleReportIntervalChange}
+                >
+                  <option value="2">2 days</option>
+                  <option value="4">4 days</option>
+                  <option value="7">7 days</option>
+                  <option value="14">14 days</option>
+                  <option value="28">28 days</option>
+                </ReportSelect>
+              </ButtonLabel>
+            </ButtonContainer>
           </Header>
           <Body>
             {this.state.showCreateModal && (
@@ -225,23 +348,20 @@ export class Schedule extends React.Component {
                 <Hours>
                   {HOURS_OF_THE_DAY.map((hour, index) => (
                     <Hour key={`hour-${index}`}>
-                      {this.props.tasks.map(
-                        (task, taskIndex) =>
-                          task.taskCoordinates.includes(
-                            this.getDateCoordinates(day.dayId, hour.hourId)
-                          ) && (
-                            <Task
-                              key={`task-${taskIndex}`}
-                              className={this.getDateCoordinates(
-                                day.dayId,
-                                hour.hourId
-                              )}
-                              onClick={() => this.handleTaskClick(task.id)}
-                            >
-                              {task.description}
-                            </Task>
-                          )
-                      )}
+                      {this.state.driverTasks.length > 0 &&
+                        this.state.driverTasks.map(
+                          (task, taskIndex) =>
+                            task.taskCoordinates.includes(
+                              this.getDateCoordinates(day.dayId, hour.hourId)
+                            ) && (
+                              <Task
+                                key={`task-${taskIndex}`}
+                                onClick={() => this.handleTaskClick(task.id)}
+                              >
+                                {task.description}
+                              </Task>
+                            )
+                        )}
                     </Hour>
                   ))}
                 </Hours>
@@ -255,5 +375,6 @@ export class Schedule extends React.Component {
 }
 
 const mapStateToProps = (state) => ({ tasks: state.tasks });
+const mapDispatchToProps = { getTasksByDriverId };
 
-export default connect(mapStateToProps)(Schedule);
+export default connect(mapStateToProps, mapDispatchToProps)(Schedule);
