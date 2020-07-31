@@ -5,13 +5,13 @@ import {
   DAYS_OF_THE_WEEK,
   HOURS_OF_THE_DAY,
 } from "../../app/constants/constants";
-import { createTask, deleteTask } from "../task/actions";
+import { createTask, deleteTask, updateTask } from "../task/actions";
 
 const Modal = styled.div`
   display: inline-block;
   position: fixed;
   top: 130px;
-  width: 90vw;
+  width: 700px;
   height: 550px;
   background-color: white;
   border: 1px solid lightgrey;
@@ -116,6 +116,32 @@ const DeleteButton = styled.button`
   background-color: red;
 `;
 
+const ConflictAlert = styled.div`
+  display: none;
+
+  ${({ show }) =>
+    show &&
+    `
+    width: 400px;
+    height: 170px;
+    display: inline-block;
+    position: fixed;
+    top: 33vh;
+    left: 37vw;
+    background-color: white;
+    border: 1px solid lightgrey;
+    box-shadow: 2px 2px 10px #888888;
+    z-index: 2;
+  `}
+`;
+
+const ConflictButton = styled.button`
+  ${SharedButtonStyles}
+  background-color: red;
+  padding: 1rem;
+  margin-top: 0;
+`;
+
 export class ModalTaskForm extends React.Component {
   constructor(props) {
     super(props);
@@ -145,6 +171,7 @@ export class ModalTaskForm extends React.Component {
         type,
         description,
         address,
+        alertType: "",
       };
     } else {
       this.state = {
@@ -158,10 +185,9 @@ export class ModalTaskForm extends React.Component {
         type: "pickup",
         description: "",
         address: "",
+        alertType: "",
       };
     }
-
-    console.log(`INITIAL STATE: ${JSON.stringify(this.state)}`);
   }
 
   handleChange = (e) => {
@@ -170,24 +196,99 @@ export class ModalTaskForm extends React.Component {
     });
   };
 
-  handleSubmit = (e) => {
+  deleteTask = (e) => {
+    this.props.deleteTask({ taskId: this.state.id });
+    this.props.closeModal();
+    alert("Task has been deleted!");
+    e.preventDefault();
+  };
+
+  checkForConflicts = (newTaskCoordinates) => {
+    let hasConflict = false;
+
+    this.props.tasks.map((task) => {
+      if (task.driverId === this.state.driverId) {
+        if (task.taskCoordinates.length > 0) {
+          task.taskCoordinates.map((coord) => {
+            if (newTaskCoordinates.includes(coord)) {
+              hasConflict = true;
+            }
+          });
+        }
+      }
+    });
+
+    return hasConflict;
+  };
+
+  generateTaskCoordinates = () => {
+    let newCoords = [];
+    let numOfCoords = this.state.endHourId - this.state.startHourId;
+    for (let coord = 0; coord < numOfCoords; coord++) {
+      let hourCoord = parseInt(this.state.startHourId) + coord;
+      newCoords.push(`${this.state.weekId}-${this.state.dayId}-${hourCoord}`);
+    }
+
+    this.setState({
+      taskCoordinates: newCoords,
+    });
+  };
+
+  mapStateToTaskPayload = () => {
+    this.generateTaskCoordinates();
+
     const {
+      id,
       driverId,
       weekId,
       dayId,
       startHourId,
       endHourId,
+      taskCoordinates,
       type,
       description,
       address,
     } = this.state;
 
     const taskPayload = {
+      id,
       driverId,
       weekId,
       dayId,
       startHourId,
       endHourId,
+      taskCoordinates,
+      type,
+      description,
+      address,
+    };
+
+    return taskPayload;
+  };
+
+  // TO DO: refactor with mapStateToTaskPayload
+  handleSubmit = (e) => {
+    const {
+      id,
+      driverId,
+      weekId,
+      dayId,
+      startHourId,
+      endHourId,
+      taskCoordinates,
+      type,
+      description,
+      address,
+    } = this.state;
+
+    const taskPayload = {
+      id,
+      driverId,
+      weekId,
+      dayId,
+      startHourId,
+      endHourId,
+      taskCoordinates,
       type,
       description,
       address,
@@ -200,16 +301,53 @@ export class ModalTaskForm extends React.Component {
       taskPayload.taskCoordinates.push(`${weekId}-${dayId}-${hourCoord}`);
     }
 
-    this.props.createTask(taskPayload);
-    this.props.closeModal();
-    alert("Task has been created!");
+    this.setState({
+      taskCoordinates: taskPayload.taskCoordinates,
+    });
+
+    const hasConflict = this.checkForConflicts(taskPayload.taskCoordinates);
+
+    if (hasConflict === false) {
+      if (this.props.type === "create") {
+        this.props.createTask(taskPayload);
+        this.props.closeModal();
+        alert("Task has been created!");
+      } else if (this.props.type === "edit") {
+        this.props.updateTask(taskPayload);
+        this.props.closeModal();
+        alert("Task has been updated!");
+      }
+    } else if (hasConflict === true) {
+      if (this.props.type === "create") {
+        this.setState({
+          showConflictAlert: true,
+          alertType: "overwrite",
+        });
+      } else if (this.props.type === "edit") {
+        this.setState({
+          showConflictAlert: true,
+          alertType: "delete",
+        });
+      }
+    }
     e.preventDefault();
   };
 
-  deleteTask = (e) => {
-    this.props.deleteTask({ taskId: this.state.id });
-    this.props.closeModal();
-    alert("Task has been deleted!");
+  handleAlertSubmit = (e) => {
+    const taskPayload = this.mapStateToTaskPayload();
+
+    if (this.state.alertType === "delete") {
+      this.props.updateTask(taskPayload);
+      this.props.closeModal();
+      alert("Task has been updated! The conflicting task has been deleted.");
+    } else if (this.state.alertType === "overwrite") {
+      this.props.updateTask(taskPayload);
+      this.props.closeModal();
+      alert(
+        "Task has been created! The conflicting task has been overwritten."
+      );
+    }
+
     e.preventDefault();
   };
 
@@ -259,7 +397,7 @@ export class ModalTaskForm extends React.Component {
                   Day:
                   <Select
                     name="dayId"
-                    dayId={this.state.dayId}
+                    value={this.state.dayId}
                     onChange={this.handleChange}
                   >
                     {DAYS_OF_THE_WEEK.map((day, index) => (
@@ -278,7 +416,7 @@ export class ModalTaskForm extends React.Component {
                 From:
                 <Select
                   name="startHourId"
-                  startHourId={this.state.startHourId}
+                  value={this.state.startHourId}
                   onChange={this.handleChange}
                 >
                   {HOURS_OF_THE_DAY.map((hour, index) => (
@@ -292,7 +430,7 @@ export class ModalTaskForm extends React.Component {
                 To:
                 <Select
                   name="endHourId"
-                  endHourId={this.state.endHourId}
+                  value={this.state.endHourId}
                   onChange={this.handleChange}
                 >
                   {HOURS_OF_THE_DAY.map((hour, index) => (
@@ -351,12 +489,39 @@ export class ModalTaskForm extends React.Component {
             </ButtonContainer>
           </Form>
         </FormContainer>
+        <ConflictAlert show={this.state.showConflictAlert}>
+          {this.state.alertType === "overwrite" && (
+            <div style={{ padding: "0.5rem" }}>
+              <h3 style={{ margin: "5px" }}>TASK CONFLICT</h3>
+              <p>
+                Would you like to <strong>overwrite</strong> the{" "}
+                <strong>existing task</strong> with the new task?
+              </p>
+              <ConflictButton onClick={this.handleAlertSubmit}>
+                OVERWRITE
+              </ConflictButton>
+            </div>
+          )}
+          {this.state.alertType === "delete" && (
+            <div style={{ padding: "0.5rem" }}>
+              <h3 style={{ margin: "5px" }}>TASK CONFLICT</h3>
+              <p>
+                Would you like to <strong>delete</strong> the{" "}
+                <strong>conflicting task</strong> and <strong>save</strong> the{" "}
+                <strong>new task</strong>?
+              </p>
+              <ConflictButton onClick={this.handleAlertSubmit}>
+                DELETE
+              </ConflictButton>
+            </div>
+          )}
+        </ConflictAlert>
       </Modal>
     );
   }
 }
 
 const mapStateToProps = (state) => ({ tasks: state.tasks });
-const mapDispatchToProps = { createTask, deleteTask };
+const mapDispatchToProps = { createTask, deleteTask, updateTask };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ModalTaskForm);

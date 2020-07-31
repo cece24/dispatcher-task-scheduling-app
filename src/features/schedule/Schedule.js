@@ -70,7 +70,9 @@ const Task = styled.div`
   position: absolute;
   top: 0;
   right: 0;
-  background-color: #1a73e8;
+  background-color: #80d9ff;
+  opacity: 0.8;
+  font-size: 14px;
 `;
 
 const AddTaskButton = styled.button`
